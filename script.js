@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let catalogoProdutos = []; 
     let carrinho = JSON.parse(localStorage.getItem('cart')) || [];
   
-    // LINK DO BACK END NO RENDER (ATUALIZADO!)
+    // LINK DO BACK END NO RENDER
+    // IMPORTANTE: Certifique-se de que este link está igual ao do seu Render
     const API_URL = 'https://loja-api-72te.onrender.com';
 
     // Elementos da Interface
@@ -25,10 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // =================================================================
     async function carregarProdutos() {
       try {
-          if (containerProdutos) containerProdutos.innerHTML = '<p style="padding:2rem;">Carregando produtos...</p>';
+          if (containerProdutos) containerProdutos.innerHTML = '<p style="padding:2rem;">A carregar produtos...</p>';
   
-          // Usa a variável API_URL
           const response = await fetch(`${API_URL}/api/produtos`);
+          
+          if (!response.ok) {
+              throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
           catalogoProdutos = await response.json();
           
           if (containerProdutos) {
@@ -36,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
       } catch (erro) {
           console.error("Erro ao buscar produtos:", erro);
-          if (containerProdutos) containerProdutos.innerHTML = '<p>Erro ao carregar. O servidor pode estar "dormindo" (Render demora uns 30s para acordar). Recarregue a página.</p>';
+          if (containerProdutos) containerProdutos.innerHTML = '<p>Erro ao carregar. O servidor pode estar "a dormir" (Render demora uns 30s para acordar). Recarregue a página.</p>';
       }
     }
   
@@ -93,10 +98,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. LÓGICA DO CARRINHO
     // =================================================================
     function adicionarProdutoAoCarrinho(idProduto, btnElement) {
-        const produto = catalogoProdutos.find(p => p.id == idProduto);
+        // Converte para número para garantir comparação correta
+        const id = Number(idProduto);
+        const produto = catalogoProdutos.find(p => p.id === id);
+        
         if (!produto) return;
   
-        const itemExistente = carrinho.find(item => item.id == idProduto);
+        const itemExistente = carrinho.find(item => item.id === id);
         if (itemExistente) {
           itemExistente.qtd++;
         } else {
@@ -271,13 +279,13 @@ document.addEventListener('DOMContentLoaded', function() {
         novoBtn.addEventListener('click', async () => {
             if (carrinho.length === 0) return alert('Carrinho vazio!');
             
-            novoBtn.innerText = "Processando...";
+            novoBtn.innerText = "A processar...";
             novoBtn.disabled = true;
             novoBtn.style.opacity = "0.7";
   
             try {
-                // AGORA CHAMA O RENDER
-                const resposta = await fetch(`${API_URL}/api/criar-pagamento`, {
+                // CHAMA O RENDER
+                const response = await fetch(`${API_URL}/api/criar-pagamento`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -285,19 +293,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
   
-                const dados = await resposta.json();
+                if (!response.ok) {
+                    const erroData = await response.json();
+                    throw new Error(erroData.erro || 'Erro no servidor');
+                }
+
+                const dados = await response.json();
                 
                 if (dados.url_pagamento) {
                     window.location.href = dados.url_pagamento;
                 } else {
-                    alert('Erro: ' + (dados.erro || 'Erro desconhecido'));
-                    novoBtn.innerText = "Tentar Novamente";
-                    novoBtn.disabled = false;
+                    throw new Error('URL de pagamento não recebida');
                 }
   
             } catch (erro) {
                 console.error(erro);
-                alert('Erro de conexão. O servidor online pode estar inicializando, tente de novo em 30 segundos.');
+                alert(`Erro: ${erro.message}. Tente de novo em 30 segundos (o servidor pode estar a acordar).`);
                 novoBtn.innerText = "Confirmar Pedido";
                 novoBtn.disabled = false;
                 novoBtn.style.opacity = "1";
