@@ -11,9 +11,20 @@
   <header class="header-fixo">
     <div class="header-container">
       <div class="header-logo">
-        <!-- LOGO CORRIGIDA AQUI -->
-        <a href="index.html" aria-label="Página inicial">
-            <img src="https://placehold.co/120x40/transparent/000000?text=LOJA+LOGO" alt="Logo da Loja" height="32">
+        <!-- LOGO SVG APLICADA -->
+        <a href="index.html" aria-label="Página inicial" style="text-decoration: none; display: flex; align-items: center;">
+            <svg width="100" height="32" viewBox="0 0 100 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Texto FRK estilizado -->
+                <text x="0" y="24" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#1a1a1a" letter-spacing="-2">
+                    frk
+                    <tspan fill="#007bff">.</tspan> <!-- Ponto azul para destaque -->
+                </text>
+                
+                <!-- Subtítulo pequeno 'store' -->
+                <text x="42" y="24" font-family="Arial, sans-serif" font-size="10" font-weight="400" fill="#666" letter-spacing="1">
+                    STORE
+                </text>
+            </svg>
         </a>
       </div>
       <form class="header-busca" onsubmit="event.preventDefault();">
